@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Droppr - Download</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      overflow: hidden;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
+      background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+    }
+    .container {
+      max-width: 32rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-transparent flex flex-col items-center justify-between text-white">
+  <canvas id="snowfall"></canvas>
+  
+  <header class="w-full text-center pt-8">
+    <h1 class="text-4xl font-bold tracking-tight">Droppr</h1>
+  </header>
+
+  <main class="container mx-auto px-4 flex-grow flex items-center justify-center">
+    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full text-center shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4">Your file is ready 🎉</h2>
+      <p class="text-lg text-gray-300 mb-2">{{ filename }}</p>
+      <p class="text-sm text-gray-400 mb-6">Expires in 15 minutes</p>
+      <a href="{{ download_url }}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg px-6 py-3 inline-block mb-4">Download Now</a>
+      <form action="{{ delete_url }}" method="POST">
+        <button type="submit" class="text-red-400 hover:text-red-300 underline">Delete file from the server</button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="w-full text-center py-4">
+    <p class="text-sm text-gray-300">© 2025 Droppr</p>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById('snowfall');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const snowflakes = [];
+    const maxSnowflakes = 50;
+
+    class Snowflake {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 2 + 1;
+        this.speed = Math.random() * 2 + 1;
+      }
+      update() {
+        this.y += this.speed;
+        if (this.y > canvas.height) this.y = 0;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < maxSnowflakes; i++) {
+      snowflakes.push(new Snowflake());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snowflakes.forEach(snowflake => {
+        snowflake.update();
+        snowflake.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    animate();
+  </script>
+</body>
+</html>

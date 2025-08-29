@@ -3,211 +3,129 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Droppr - File Sharing</title>
+  <title>Droppr</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    /* --- Reset & Body --- */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
       overflow: hidden;
     }
-
-    /* --- Background Animation --- */
-    body::before {
-      content: "";
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: conic-gradient(#667eea, #764ba2, #43e97b, #38f9d7, #667eea);
-      animation: rotate 15s linear infinite;
-      z-index: -2;
-    }
-    body::after {
-      content: "";
-      position: absolute;
-      top:0; left:0; right:0; bottom:0;
-      backdrop-filter: blur(120px);
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
       z-index: -1;
+      background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
     }
-    @keyframes rotate {
-      100% { transform: rotate(360deg); }
-    }
-
-    /* --- Header --- */
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 1.2s ease;
-    }
-    header h1 {
-      font-size: 3.5rem;
-      font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(to right, #43e97b, #38f9d7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    header p {
-      font-size: 1.2rem;
-      opacity: 0.9;
-      margin-top: 10px;
-    }
-
-    /* --- Upload Box --- */
-    .upload-box {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(16px);
-      border: 2px dashed rgba(255,255,255,0.5);
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-      width: 100%;
-      max-width: 450px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-      transition: transform 0.3s, border-color 0.3s;
-      animation: fadeInUp 1.5s ease;
-    }
-    .upload-box:hover {
-      transform: translateY(-5px);
-      border-color: #38f9d7;
-    }
-    .upload-box h2 {
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-
-    /* --- Input & Button --- */
-    input[type="file"] {
-      display: block;
-      margin: 20px auto;
-      font-size: 1rem;
-      color: #000;
-      background: #fff;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    input[type="file"]:hover {
-      background: #e8e8e8;
-    }
-    button {
-      padding: 12px 25px;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(to right, #43e97b, #38f9d7);
-      color: #000;
-      cursor: pointer;
-      font-weight: bold;
-      transition: transform 0.2s, box-shadow 0.3s;
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(56,249,215,0.5);
-    }
-
-    /* --- Result Box --- */
-    .result-box {
-      margin-top: 20px;
-      padding: 20px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 12px;
-      animation: fadeIn 1s ease;
-    }
-    .result-box p {
-      margin: 10px 0;
-    }
-    .result-box a {
-      color: #38f9d7;
-      font-weight: bold;
-      word-wrap: break-word;
-      text-decoration: none;
-    }
-    .copy-btn {
-      margin-top: 10px;
-      background: #fff;
-      color: #000;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    .copy-btn:hover {
-      background: #e0e0e0;
-    }
-
-    /* --- Animations --- */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* --- Footer --- */
-    footer {
-      text-align: center;
-      padding: 15px;
-      font-size: 0.9rem;
-      opacity: 0.8;
-      margin-top: 30px;
+    .container {
+      max-width: 32rem;
     }
   </style>
 </head>
-<body>
-  <header>
-    <h1>Droppr</h1>
-    <p>File Sharing made sleek, simple, and fast</p>
+<body class="min-h-screen bg-transparent flex flex-col items-center justify-between text-white">
+  <canvas id="snowfall"></canvas>
+  
+  <header class="w-full text-center pt-8">
+    <h1 class="text-4xl font-bold tracking-tight">Droppr</h1>
+    <p class="mt-2 text-lg">File Sharing made sleek, simple, and fast</p>
   </header>
 
-  <main>
-    <div class="upload-box">
-      <h2>Upload a File</h2>
-      <form method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Drop & Share</button>
-      </form>
-      <p style="margin-top: 15px; font-size: 0.95rem;">Max file size: 25 MB · Links expire in 15 minutes</p>
+  <main class="container mx-auto px-4 flex-grow flex items-center justify-center">
+    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full text-center shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4">Upload a File</h2>
+      <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+        <form action="/" method="POST" enctype="multipart/form-data">
+          <input type="file" name="file" class="hidden" id="fileInput" required>
+          <label for="fileInput" class="cursor-pointer">
+            <div class="text-gray-300 hover:text-white transition-colors">
+              <svg class="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V8m0 0l-5 5m5-5l5 5m6 3v6m-6-6l-5 5m5-5l5 5"></path>
+              </svg>
+              <p class="mt-2">Drop & Share</p>
+            </div>
+          </label>
+          <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg px-6 py-3 hidden">Upload</button>
+        </form>
+      </div>
+      <p class="mt-4 text-sm text-gray-300">Max file size: 100 MB · Links expire in 15 minutes</p>
 
       {% if error %}
-        <p class="error-msg">{{ error }}</p>
+        <p class="mt-4 text-red-400">{{ error }}</p>
       {% endif %}
 
       {% if link %}
-        <div class="result-box">
-          <p><strong>Upload successful!</strong></p>
-          <p>Expires in 15 minutes:</p>
-          <p><a href="{{ link }}" id="shareLink">{{ link }}</a></p>
-          <button class="copy-btn" onclick="copyLink()">Copy Link</button>
+        <div class="mt-6 relative">
+          <button onclick="this.parentElement.remove()" class="absolute top-0 right-0 text-gray-300 hover:text-white">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          <p class="text-green-400 font-medium">Upload successful!</p>
+          <p class="mt-2 text-sm text-gray-300">Expires in 15 minutes:</p>
+          <div class="mt-2 flex items-center justify-center">
+            <input type="text" value="{{ link }}" readonly class="bg-gray-800 text-white rounded-l-lg px-4 py-2 w-full">
+            <button onclick="navigator.clipboard.writeText('{{ link }}'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy Link', 2000)" class="bg-blue-500 hover:bg-blue-600 text-white rounded-r-lg px-4 py-2">Copy Link</button>
+          </div>
         </div>
       {% endif %}
     </div>
   </main>
 
-  <footer>
-    <p>© 2025 Droppr</p>
+  <footer class="w-full text-center py-4">
+    <p class="text-sm text-gray-300">© 2025 Droppr</p>
   </footer>
 
   <script>
-    function copyLink() {
-      const link = document.getElementById("shareLink").innerText;
-      navigator.clipboard.writeText(link).then(() => {
-        alert("Copied to clipboard!");
-      });
+    const canvas = document.getElementById('snowfall');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const snowflakes = [];
+    const maxSnowflakes = 50;
+
+    class Snowflake {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 2 + 1;
+        this.speed = Math.random() * 2 + 1;
+      }
+      update() {
+        this.y += this.speed;
+        if (this.y > canvas.height) this.y = 0;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fill();
+      }
     }
+
+    for (let i = 0; i < maxSnowflakes; i++) {
+      snowflakes.push(new Snowflake());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      snowflakes.forEach(snowflake => {
+        snowflake.update();
+        snowflake.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    animate();
+
+    // Auto-submit form when file is selected
+    document.getElementById('fileInput').addEventListener('change', function() {
+      this.form.submit();
+    });
   </script>
 </body>
 </html>
