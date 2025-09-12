@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {% if download_url %}
+  <meta property="og:title" content="Droppr File - {{ filename }}">
+  <meta property="og:description" content="Shared via Droppr. Expires in 15 minutes.">
+  <meta property="og:type" content="video.other">
+  <meta property="og:video" content="{{ url_for('view_file', random_id=request.path.split('/')[-1], _external=True) }}">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:video:width" content="1280">
+  <meta property="og:video:height" content="720">
+  {% endif %}
+  <meta property="og:image" content="{{ url_for('view_file', random_id=request.path.split('/')[-1], _external=True) }}">
+
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Droppr - Download</title>

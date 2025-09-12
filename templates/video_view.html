@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Droppr Video Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { overflow: hidden; }
+    canvas { position: fixed; top: 0; left: 0; z-index: -1;
+             background: linear-gradient(to bottom, #1e3a8a, #3b82f6); }
+    .container { max-width: 42rem; }
+  </style>
+</head>
+<body class="min-h-screen bg-transparent flex flex-col items-center justify-between text-white">
+  <canvas id="snowfall"></canvas>
+
+  <header class="w-full text-center pt-8">
+    <h1 class="text-4xl font-bold tracking-tight">Droppr Video Sharing</h1>
+  </header>
+
+  <main class="container mx-auto px-4 flex-grow flex flex-col items-center justify-center">
+    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full text-center shadow-lg">
+      <h2 class="text-2xl font-semibold mb-4">Now Playing 🎬</h2>
+      <p class="text-lg text-gray-300 mb-4">{{ filename }}</p>
+
+      {% if filename.endswith('.mp4') or filename.endswith('.webm') %}
+        <video controls autoplay class="rounded-lg mx-auto max-h-[500px] w-full">
+          <source src="{{ file_url }}" type="video/mp4">
+        </video>
+      {% elif filename.endswith('.jpg') or filename.endswith('.jpeg') or filename.endswith('.png') or filename.endswith('.gif') or filename.endswith('.webp') %}
+        <img src="{{ file_url }}" alt="{{ filename }}" class="rounded-lg mx-auto max-h-[500px]">
+      {% endif %}
+
+      <div class="mt-6 flex justify-center gap-6">
+        <a href="{{ download_url }}" class="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg px-6 py-3">Download</a>
+        <form action="{{ delete_url }}" method="POST">
+          <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg px-6 py-3">Delete File</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="w-full text-center py-4">
+    <p class="text-sm text-gray-300">© 2025 Droppr</p>
+  </footer>
+
+  <script>
+    const canvas=document.getElementById('snowfall');const ctx=canvas.getContext('2d');
+    canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+    const snowflakes=[];const maxSnowflakes=50;
+    class Snowflake{constructor(){this.x=Math.random()*canvas.width;this.y=Math.random()*canvas.height;this.radius=Math.random()*2+1;this.speed=Math.random()*2+1;}
+      update(){this.y+=this.speed;if(this.y>canvas.height)this.y=0;}
+      draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.radius,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.8)';ctx.fill();}}
+    for(let i=0;i<maxSnowflakes;i++){snowflakes.push(new Snowflake());}
+    function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);snowflakes.forEach(s=>{s.update();s.draw();});requestAnimationFrame(animate);}animate();
+    window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+  </script>
+</body>
+</html>
