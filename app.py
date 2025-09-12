@@ -10,7 +10,8 @@ import mimetypes
 app = Flask(__name__)
 
 # --- Config ---
-UPLOAD_FOLDER = "uploads"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 LINK_EXPIRY = 15 * 60  # 15 minutes in seconds
