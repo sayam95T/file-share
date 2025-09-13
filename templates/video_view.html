@@ -3,12 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Droppr Video Player</title>
+  <title>Droppr Video - {{ filename }}</title>
+
+  {% if file_url %}
+  <!-- Open Graph for Discord / social -->
+  <meta property="og:title" content="Droppr Video - {{ filename }}">
+  <meta property="og:description" content="Shared via Droppr. Expires in 15 minutes.">
+  <meta property="og:type" content="video.other">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image" content="{{ file_url }}"> <!-- preview thumbnail -->
+  <meta property="og:video" content="{{ file_url }}">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:video:width" content="640">
+  <meta property="og:video:height" content="360">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="player">
+  <meta name="twitter:title" content="Droppr Video - {{ filename }}">
+  <meta name="twitter:description" content="Shared via Droppr. Expires in 15 minutes.">
+  <meta name="twitter:player" content="{{ file_url }}">
+  <meta name="twitter:player:width" content="640">
+  <meta name="twitter:player:height" content="360">
+  {% endif %}
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { overflow: hidden; }
-    canvas { position: fixed; top: 0; left: 0; z-index: -1;
-             background: linear-gradient(to bottom, #1e3a8a, #3b82f6); }
+    canvas { position: fixed; top:0; left:0; z-index:-1; background: linear-gradient(to bottom, #1e3a8a, #3b82f6); }
     .container { max-width: 42rem; }
   </style>
 </head>

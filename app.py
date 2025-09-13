@@ -157,7 +157,8 @@ def video_view(random_id):
             file_url=signed_url,
             download_url=signed_url,
             delete_url=del_url,
-            random_id=random_id
+            random_id=random_id,
+            request=request
         )
     except Exception as e:
         app.logger.error(f"Video streaming error: {e}")
