@@ -15,12 +15,23 @@
 <body class="min-h-screen bg-transparent flex flex-col items-center justify-between text-white">
   <canvas id="snowfall"></canvas>
 
+  <!-- Login Overlay -->
+  <div id="login-overlay" class="fixed inset-0 flex flex-col items-center justify-center bg-black/70 z-50">
+    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center w-80">
+      <h2 class="text-2xl font-semibold mb-4 text-white">Login to Upload</h2>
+      <input id="username" type="text" placeholder="Username" class="w-full mb-2 p-2 rounded text-black">
+      <input id="password" type="password" placeholder="Password" class="w-full mb-4 p-2 rounded text-black">
+      <button id="login-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Login</button>
+      <p id="login-error" class="text-red-400 mt-2 hidden">Invalid credentials</p>
+    </div>
+  </div>
+
   <header class="w-full text-center pt-8">
     <h1 class="text-4xl font-bold tracking-tight">Droppr Video Sharing</h1>
     <p class="mt-2 text-lg">Upload & share videos/images instantly</p>
   </header>
 
-  <main class="container mx-auto px-4 flex-grow flex items-center justify-center">
+  <main id="upload-area" class="container mx-auto px-4 flex-grow flex items-center justify-center opacity-50 pointer-events-none">
     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full text-center shadow-lg">
       <h2 class="text-2xl font-semibold mb-4">Upload a Video or Image</h2>
       <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
@@ -67,6 +78,7 @@
   </footer>
 
   <script>
+    // Snowfall animation
     const canvas = document.getElementById('snowfall');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -77,7 +89,40 @@
     for(let i=0;i<maxSnowflakes;i++){snowflakes.push(new Snowflake());}
     function animate(){ctx.clearRect(0,0,canvas.width,canvas.height); snowflakes.forEach(s=>{s.update();s.draw();}); requestAnimationFrame(animate);} animate();
     window.addEventListener('resize',()=>{canvas.width=window.innerWidth; canvas.height=window.innerHeight;});
+
+    // Auto-submit on file select
     document.getElementById('fileInput').addEventListener('change', function(){ this.form.submit(); });
+
+    // Login system
+    const loginOverlay = document.getElementById('login-overlay');
+    const loginBtn = document.getElementById('login-btn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('login-error');
+    const uploadArea = document.getElementById('upload-area');
+
+    loginBtn.addEventListener('click', async () => {
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          // Successful login
+          loginOverlay.style.display = 'none';
+          uploadArea.classList.remove('opacity-50', 'pointer-events-none');
+        } else {
+          loginError.classList.remove('hidden');
+        }
+      } catch (e) {
+        loginError.classList.remove('hidden');
+      }
+    });
   </script>
 </body>
 </html>

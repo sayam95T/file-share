@@ -164,6 +164,21 @@ def video_view(random_id):
         app.logger.error(f"Video streaming error: {e}")
         return "Error generating video link", 500
 
+# --------------- LOG IN ROUTE ---------------
+from flask import jsonify
+
+# --- Login API ---
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
+
+    if username == os.getenv("UPLOAD_USER") and password == os.getenv("UPLOAD_PASS"):
+        return jsonify({"success": True})
+    return jsonify({"success": False}), 401
+
+
 # ------------------- Cleaner -------------------
 
 def cleanup_expired_files():

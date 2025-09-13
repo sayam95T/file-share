@@ -28,15 +28,25 @@
     <h1 class="text-4xl font-bold tracking-tight">Droppr</h1>
     <p class="mt-2 text-lg">File Sharing made sleek, simple, and fast</p>
   </header>
-<div class="mt-6">
-  <a href="/video.com"
-     class="bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg px-6 py-3 inline-block">
-    🎥 Go to Video Sharing
-  </a>
-</div>
+  <div class="mt-6">
+    <a href="/video.com"
+       class="bg-purple-500 hover:bg-purple-600 text-white font-medium rounded-lg px-6 py-3 inline-block">
+      🎥 Go to Video Sharing
+    </a>
+  </div>
 
+  <!-- LOGIN OVERLAY -->
+  <div id="login-overlay" class="fixed inset-0 flex flex-col items-center justify-center bg-black/70 z-50">
+    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center w-80">
+      <h2 class="text-2xl font-semibold mb-4 text-white">Login to Upload</h2>
+      <input id="username" type="text" placeholder="Username" class="w-full mb-2 p-2 rounded text-black">
+      <input id="password" type="password" placeholder="Password" class="w-full mb-4 p-2 rounded text-black">
+      <button id="login-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">Login</button>
+      <p id="login-error" class="text-red-400 mt-2 hidden">Invalid credentials</p>
+    </div>
+  </div>
 
-  <main class="container mx-auto px-4 flex-grow flex items-center justify-center">
+  <main id="upload-area" class="container mx-auto px-4 flex-grow flex items-center justify-center opacity-50 pointer-events-none">
     <div class="bg-white/10 backdrop-blur-md rounded-2xl p-8 w-full text-center shadow-lg">
       <h2 class="text-2xl font-semibold mb-4">Upload a File</h2>
       <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
@@ -53,7 +63,7 @@
           <button type="submit" class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg px-6 py-3 hidden">Upload</button>
         </form>
       </div>
-      <p class="mt-4 text-sm text-gray-300">Max file size: 100 MB · Links expire in  24 hours.</p>
+      <p class="mt-4 text-sm text-gray-300">Max file size: 100 MB · Links expire in 24 hours.</p>
 
       {% if error %}
         <p class="mt-4 text-red-400">{{ error }}</p>
@@ -132,6 +142,37 @@
     // Auto-submit form when file is selected
     document.getElementById('fileInput').addEventListener('change', function() {
       this.form.submit();
+    });
+
+    // LOGIN HANDLER
+    const loginOverlay = document.getElementById('login-overlay');
+    const loginBtn = document.getElementById('login-btn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('login-error');
+    const uploadArea = document.getElementById('upload-area');
+
+    loginBtn.addEventListener('click', async () => {
+      const username = usernameInput.value;
+      const password = passwordInput.value;
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          // Successful login
+          loginOverlay.style.display = 'none';
+          uploadArea.classList.remove('opacity-50', 'pointer-events-none');
+        } else {
+          loginError.classList.remove('hidden');
+        }
+      } catch (e) {
+        loginError.classList.remove('hidden');
+      }
     });
   </script>
 </body>
