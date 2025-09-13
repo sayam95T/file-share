@@ -85,14 +85,25 @@ def download(random_id):
         return "Link expired", 410
 
     filename = os.path.basename(file_info["url"])
-    dl_url = file_info["url"]
     del_url = url_for("delete_file", random_id=random_id)
 
-    return render_template("download.html",
-                           filename=filename,
-                           download_url=dl_url,
-                           delete_url=del_url,
-                           random_id=random_id)
+    # Generate a signed URL from R2 (expires in LINK_EXPIRY seconds)
+    try:
+        signed_url = r2.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': R2_BUCKET, 'Key': filename},
+            ExpiresIn=LINK_EXPIRY
+        )
+        return render_template(
+            "download.html",
+            filename=filename,
+            download_url=signed_url,
+            delete_url=del_url,
+            random_id=random_id
+        )
+    except Exception as e:
+        app.logger.error(f"Download error: {e}")
+        return "Error generating download link", 500
 
 
 @app.route("/delete/<random_id>", methods=["POST"])
@@ -150,16 +161,27 @@ def video_view(random_id):
         file_links.pop(random_id, None)
         return "Link expired", 410
 
-    file_url = file_info["url"]
-    filename = os.path.basename(file_url)
+    filename = os.path.basename(file_info["url"])
     del_url = url_for("delete_file", random_id=random_id)
 
-    return render_template("video_view.html",
-                           filename=filename,
-                           file_url=file_url,
-                           download_url=file_url,
-                           delete_url=del_url,
-                           random_id=random_id)
+    # Generate a signed URL for direct streaming
+    try:
+        signed_url = r2.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': R2_BUCKET, 'Key': filename},
+            ExpiresIn=LINK_EXPIRY
+        )
+        return render_template(
+            "video_view.html",
+            filename=filename,
+            file_url=signed_url,
+            download_url=signed_url,
+            delete_url=del_url,
+            random_id=random_id
+        )
+    except Exception as e:
+        app.logger.error(f"Video streaming error: {e}")
+        return "Error generating video link", 500
 
 
 # ------------------- Cleaner -------------------
