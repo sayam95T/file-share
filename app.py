@@ -30,7 +30,7 @@ r2 = boto3.client(
 )
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
-LINK_EXPIRY = 15 * 60  # 15 minutes in seconds
+LINK_EXPIRY = 1440 * 60  # 24  hours in seconds
 
 # Store mapping: { random_id: {"filename":..., "time":...} }
 file_links = {}
