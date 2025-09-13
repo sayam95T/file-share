@@ -13,10 +13,12 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
 # --- Cloudflare R2 Config ---
-R2_ACCOUNT_ID = "your_account_id_here"
-R2_ACCESS_KEY = "your_access_key_here"
-R2_SECRET_KEY = "your_secret_key_here"
-R2_BUCKET = "droppr-videos"  # your bucket name
+
+R2_ACCOUNT_ID = os.getenv("R2_ACCOUNT_ID")
+R2_ACCESS_KEY = os.getenv("R2_ACCESS_KEY")
+R2_SECRET_KEY = os.getenv("R2_SECRET_KEY")
+R2_BUCKET = os.getenv("R2_BUCKET")
+  # your bucket name
 
 # R2 client
 session = boto3.session.Session()
