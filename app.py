@@ -4,7 +4,8 @@ import string
 import time
 import threading
 import logging
-from flask import Flask, request, render_template, url_for
+import json
+from flask import Flask, request, render_template, url_for, jsonify
 from werkzeug.utils import secure_filename
 import boto3
 from botocore.client import Config
@@ -30,10 +31,25 @@ r2 = boto3.client(
 )
 
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
-LINK_EXPIRY = 1440 * 60  # 24  hours in seconds
+LINK_EXPIRY = 1440 * 60  # 24 hours in seconds
 
-# Store mapping: { random_id: {"filename":..., "time":...} }
-file_links = {}
+# --- File links persistence ---
+FILE_LINKS_PATH = "file_links.json"
+
+def load_links():
+    if os.path.exists(FILE_LINKS_PATH):
+        try:
+            with open(FILE_LINKS_PATH, "r") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_links():
+    with open(FILE_LINKS_PATH, "w") as f:
+        json.dump(file_links, f)
+
+file_links = load_links()  # Load links on startup
 
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -58,6 +74,7 @@ def upload():
 
         random_id = generate_random_string()
         file_links[random_id] = {"filename": filename, "time": time.time()}
+        save_links()
 
         share_link = request.host_url + random_id
         return render_template("index.html", link=share_link, error=None)
@@ -72,6 +89,7 @@ def download(random_id):
 
     if time.time() - file_info["time"] > LINK_EXPIRY:
         file_links.pop(random_id, None)
+        save_links()
         return "Link expired", 410
 
     filename = file_info["filename"]
@@ -108,6 +126,7 @@ def delete_file(random_id):
         app.logger.error(f"Delete error: {e}")
 
     file_links.pop(random_id, None)
+    save_links()
     return render_template("deleted.html")
 
 # ------------------- Video Sharing -------------------
@@ -126,6 +145,7 @@ def video_upload():
 
         random_id = generate_random_string()
         file_links[random_id] = {"filename": filename, "time": time.time()}
+        save_links()
 
         share_link = request.host_url + "v/" + random_id
         return render_template("video_upload.html", link=share_link, error=None)
@@ -140,6 +160,7 @@ def video_view(random_id):
 
     if time.time() - file_info["time"] > LINK_EXPIRY:
         file_links.pop(random_id, None)
+        save_links()
         return "Link expired", 410
 
     filename = file_info["filename"]
@@ -165,9 +186,7 @@ def video_view(random_id):
         return "Error generating video link", 500
 
 # --------------- LOG IN ROUTE ---------------
-from flask import jsonify
 
-# --- Login API ---
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -178,7 +197,6 @@ def login():
         return jsonify({"success": True})
     return jsonify({"success": False}), 401
 
-
 # ------------------- Cleaner -------------------
 
 def cleanup_expired_files():
@@ -188,7 +206,17 @@ def cleanup_expired_files():
                         if now - info["time"] > LINK_EXPIRY]
 
         for key in expired_keys:
+            filename = file_links[key]["filename"]
+            try:
+                r2.delete_object(Bucket=R2_BUCKET, Key=filename)
+                app.logger.info(f"Auto-deleted expired file: {filename}")
+            except Exception as e:
+                app.logger.error(f"Error auto-deleting {filename}: {e}")
+
             file_links.pop(key, None)
+
+        if expired_keys:
+            save_links()
 
         time.sleep(60)
 
