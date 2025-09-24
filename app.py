@@ -38,6 +38,8 @@ LINK_EXPIRY = 1440 * 60  # 24 hours in seconds
 LINKS_FILE_KEY = "file_links.json"
 file_links = {}
 
+from botocore.exceptions import ClientError
+
 def load_links():
     global file_links
     try:
@@ -45,11 +47,15 @@ def load_links():
         data = obj["Body"].read().decode("utf-8")
         file_links = json.loads(data)
         app.logger.info("Loaded file_links.json from R2")
-    except r2.exceptions.NoSuchKey:
-        app.logger.info("No existing file_links.json in R2, starting fresh")
-        file_links = {}
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            app.logger.info("No existing file_links.json in R2, starting fresh")
+            file_links = {}
+        else:
+            app.logger.error(f"Error loading file_links.json: {e}")
+            file_links = {}
     except Exception as e:
-        app.logger.error(f"Error loading file_links.json: {e}")
+        app.logger.error(f"Unexpected error loading file_links.json: {e}")
         file_links = {}
 
 def save_links():
