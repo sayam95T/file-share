@@ -5,6 +5,7 @@ import time
 import threading
 import logging
 import json
+import io
 from flask import Flask, request, render_template, url_for, jsonify
 from werkzeug.utils import secure_filename
 import boto3
@@ -33,23 +34,31 @@ r2 = boto3.client(
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100 MB
 LINK_EXPIRY = 1440 * 60  # 24 hours in seconds
 
-# --- File links persistence ---
-FILE_LINKS_PATH = "file_links.json"
+# --- File links persistence in R2 ---
+LINKS_FILE_KEY = "file_links.json"
+file_links = {}
 
 def load_links():
-    if os.path.exists(FILE_LINKS_PATH):
-        try:
-            with open(FILE_LINKS_PATH, "r") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
+    global file_links
+    try:
+        obj = r2.get_object(Bucket=R2_BUCKET, Key=LINKS_FILE_KEY)
+        data = obj["Body"].read().decode("utf-8")
+        file_links = json.loads(data)
+        app.logger.info("Loaded file_links.json from R2")
+    except r2.exceptions.NoSuchKey:
+        app.logger.info("No existing file_links.json in R2, starting fresh")
+        file_links = {}
+    except Exception as e:
+        app.logger.error(f"Error loading file_links.json: {e}")
+        file_links = {}
 
 def save_links():
-    with open(FILE_LINKS_PATH, "w") as f:
-        json.dump(file_links, f)
-
-file_links = load_links()  # Load links on startup
+    try:
+        data = json.dumps(file_links)
+        r2.put_object(Bucket=R2_BUCKET, Key=LINKS_FILE_KEY, Body=data.encode("utf-8"))
+        app.logger.info("Updated file_links.json in R2")
+    except Exception as e:
+        app.logger.error(f"Error saving file_links.json: {e}")
 
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
@@ -219,6 +228,10 @@ def cleanup_expired_files():
             save_links()
 
         time.sleep(60)
+
+# --- Load state from R2 on startup ---
+with app.app_context():
+    load_links()
 
 threading.Thread(target=cleanup_expired_files, daemon=True).start()
 
